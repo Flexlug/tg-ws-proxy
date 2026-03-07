@@ -76,7 +76,6 @@ def load_config() -> dict:
         try:
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            # Merge with defaults for missing keys
             for k, v in DEFAULT_CONFIG.items():
                 data.setdefault(k, v)
             return data
@@ -113,18 +112,15 @@ def setup_logging(verbose: bool = False):
 
 
 def _make_icon_image(size: int = 64):
-    """Create a simple tray icon: blue circle with a white 'T' letter."""
     if Image is None:
         raise RuntimeError("Pillow is required for tray icon")
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     
-    # Blue circle
     margin = 2
     draw.ellipse([margin, margin, size - margin, size - margin],
                  fill=(0, 136, 204, 255))
                  
-    # White "T"
     try:
         font = ImageFont.truetype("arial.ttf", size=int(size * 0.55))
     except Exception:
@@ -139,7 +135,6 @@ def _make_icon_image(size: int = 64):
 
 
 def _load_icon():
-    """Load icon from file or generate one."""
     icon_path = Path(__file__).parent / "icon.ico"
     if icon_path.exists() and Image:
         try:
@@ -151,7 +146,6 @@ def _load_icon():
 
 
 def _run_proxy_thread(port: int, dc_opt: Dict[int, str], verbose: bool):
-    """Target for the proxy thread — runs asyncio event loop."""
     global _async_stop
     loop = _asyncio.new_event_loop()
     _asyncio.set_event_loop(loop)
@@ -571,14 +565,6 @@ def main():
     if not _acquire_lock():
         _show_info("Приложение уже запущено.", os.path.basename(sys.argv[0]))
         return
-
-    # Hide console window if running as frozen exe
-    if getattr(sys, "frozen", False):
-        try:
-            ctypes.windll.user32.ShowWindow(
-                ctypes.windll.kernel32.GetConsoleWindow(), 0)
-        except Exception:
-            pass
 
     run_tray()
 
